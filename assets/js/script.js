@@ -14,6 +14,8 @@ function getLunarBirthdayForYear() {
   const isLeapMonth = document.getElementById("is-leap-month").checked
   const year = document.getElementById("year").value
 
+  clearBirthdayField()
+
   req = new XMLHttpRequest();
   req.onreadystatechange = function() {
     if (req.readyState === XMLHttpRequest.DONE) {
@@ -35,6 +37,10 @@ function getLunarBirthdayForYear() {
 
 function setBirthdayField(birthday) {
   document.getElementById("birthday").value = birthday
+}
+
+function clearBirthdayField() {
+  document.getElementById("birthday").value = ""
 }
 
 main()
