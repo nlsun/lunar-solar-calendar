@@ -22,13 +22,31 @@ func TestLunarBirthdayForYear(t *testing.T) {
 		expected        time.Time
 	}{
 		{
-			scenario: "not leap year",
-			lunarBirth: lunarsolar.LunarTime{
-				Time:   time.Date(1958, 11, 6, 0, 0, 0, 0, time.UTC),
-				IsLeap: false,
-			},
+			scenario: "born normal year, target normal month",
+			lunarBirth: lunarsolar.NewLunarTime(
+				time.Date(1958, 11, 6, 0, 0, 0, 0, time.UTC),
+				false,
+			),
 			targetSolarYear: 2020,
-			expected:        time.Date(2020, 12, 16, 0, 0, 0, 0, time.UTC),
+			expected:        time.Date(2020, 12, 20, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			scenario: "born leap month, target leap month",
+			lunarBirth: lunarsolar.NewLunarTime(
+				time.Date(1998, 5, 2, 0, 0, 0, 0, time.UTC),
+				true,
+			),
+			targetSolarYear: 2009,
+			expected:        time.Date(2009, 6, 24, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			scenario: "born leap month, target normal month",
+			lunarBirth: lunarsolar.NewLunarTime(
+				time.Date(1998, 5, 2, 0, 0, 0, 0, time.UTC),
+				true,
+			),
+			targetSolarYear: 2010,
+			expected:        time.Date(2010, 6, 13, 0, 0, 0, 0, time.UTC),
 		},
 	} {
 		t.Run(tc.scenario, func(t *testing.T) {
@@ -55,7 +73,7 @@ func TestLunarBirthdayForYearHTTP(t *testing.T) {
 				"is_leap_month":    false,
 				"year":             2020,
 			},
-			expected: time.Date(2020, 12, 16, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2020, 12, 20, 0, 0, 0, 0, time.UTC),
 		},
 	} {
 		t.Run(tc.scenario, func(t *testing.T) {

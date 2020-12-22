@@ -94,10 +94,8 @@ func handlelunarBirthdayForYear(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	birthday, err := lunarBirthdayForYear(lunarsolar.LunarTime{
-		Time:   reqBody.LunarBirthDate,
-		IsLeap: reqBody.IsLeapMonth,
-	}, reqBody.Year)
+	lunarBirthday := lunarsolar.NewLunarTime(reqBody.LunarBirthDate, reqBody.IsLeapMonth)
+	birthday, err := lunarBirthdayForYear(lunarBirthday, reqBody.Year)
 	if err != nil {
 		writeHttpErr(w, http.StatusBadRequest)
 		log.Print(err)
@@ -121,17 +119,26 @@ func handlelunarBirthdayForYear(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// Computes the solar birthday given a birthday as a lunar date
-// and a solar year to calculate for.
+// Computes the solar birthday given a birth date as a lunar date and a solar
+// year to calculate for.
+//
+// If the birth date is a leap month, and the target year does not leap that
+// month, treat it as a non-leap-month birth date.
 func lunarBirthdayForYear(birthDate lunarsolar.LunarTime, solarYear int) (time.Time, error) {
-	solarBirth := lunarsolar.LunarToSolar(birthDate)
-	solarBirthYear := solarBirth.Year()
-	if solarBirthYear > solarYear {
-		return time.Time{}, fmt.Errorf("birth year %d can't be greater than input year %d", solarBirthYear, solarYear)
+	lunarBirthYear := birthDate.Time().Year()
+	if lunarBirthYear > solarYear {
+		return time.Time{}, fmt.Errorf("birth year %d can't be greater than input year %d", lunarBirthYear, solarYear)
 	}
 
-	yearDiff := solarYear - solarBirthYear
-	return solarBirth.AddDate(yearDiff, 0, 0), nil
+	yearDiff := solarYear - lunarBirthYear
+	lunarBirthday := birthDate.AddDate(yearDiff, 0, 0)
+
+	// If born on a leap month, but this year that month is not a leap month,
+	// treat it as the normal month.
+	if birthDate.IsLeap() && !lunarsolar.IsLunarLeapMonthPossible(lunarBirthday) {
+		return lunarsolar.LunarToSolar(lunarBirthday.AsLeap(false)), nil
+	}
+	return lunarsolar.LunarToSolar(lunarBirthday), nil
 }
 
 func writeHttpErr(w http.ResponseWriter, code int) {

@@ -8,14 +8,21 @@ import (
 
 type LunarTime struct {
 	// Solar calendar time
-	Time time.Time
+	time time.Time
 	// If true, it's a lunar leap year, and this month is being repeated.
-	IsLeap bool
+	isLeap bool
 }
 
 const (
 	day = time.Hour * 24
 )
+
+func NewLunarTime(t time.Time, isLeap bool) LunarTime {
+	return LunarTime{
+		time:   t,
+		isLeap: isLeap,
+	}
+}
 
 func SolarToLunar(t time.Time) LunarTime {
 	year, month, day := t.Date()
@@ -25,7 +32,7 @@ func SolarToLunar(t time.Time) LunarTime {
 		SolarDay:   day,
 	})
 	return LunarTime{
-		Time: time.Date(
+		time: time.Date(
 			lunar.LunarYear,
 			time.Month(lunar.LunarMonth),
 			lunar.LunarDay,
@@ -34,13 +41,14 @@ func SolarToLunar(t time.Time) LunarTime {
 			t.Second(),
 			t.Nanosecond(),
 			t.Location()),
-		IsLeap: lunar.IsLeap,
+		isLeap: lunar.IsLeap,
 	}
 }
 
 func LunarToSolar(t LunarTime) time.Time {
-	year, month, day := t.Time.Date()
+	year, month, day := t.time.Date()
 	solar := lunarsolar.LunarToSolar(lunarsolar.Lunar{
+		IsLeap:     t.isLeap,
 		LunarYear:  year,
 		LunarMonth: int(month),
 		LunarDay:   day,
@@ -48,29 +56,46 @@ func LunarToSolar(t LunarTime) time.Time {
 	return time.Date(solar.SolarYear,
 		time.Month(solar.SolarMonth),
 		solar.SolarDay,
-		t.Time.Hour(),
-		t.Time.Minute(),
-		t.Time.Second(),
-		t.Time.Nanosecond(),
-		t.Time.Location())
+		t.time.Hour(),
+		t.time.Minute(),
+		t.time.Second(),
+		t.time.Nanosecond(),
+		t.time.Location())
 }
 
 // IsLunarLeapMonthPossible takes a lunar date that lacks leap year information
 // and tries to figure out if it was possible that month was repeated.
 func IsLunarLeapMonthPossible(t LunarTime) bool {
 	// Take the lunar time assuming it's not a leap month
-	t.IsLeap = false
+	t.isLeap = false
 
 	// Assuming a month can't be longer than 31 days, we jump forward by that
 	// amount plus 1 to land in the next month.
-	diff := 31 - t.Time.Day()
+	diff := 31 - t.time.Day()
 	lunarPlus := t.Add(day * time.Duration(diff+1))
 
-	return lunarPlus.IsLeap
+	return lunarPlus.isLeap
+}
+
+// Solar calendar time
+func (t LunarTime) Time() time.Time {
+	return t.time
+}
+
+// If true, it's a lunar leap year, and this month is being repeated.
+func (t LunarTime) IsLeap() bool {
+	return t.isLeap
 }
 
 func (t LunarTime) Add(d time.Duration) LunarTime {
 	return SolarToLunar(LunarToSolar(t).Add(d))
+}
+
+func (t LunarTime) AddDate(years int, months int, days int) LunarTime {
+	return LunarTime{
+		time:   t.time.AddDate(years, months, days),
+		isLeap: t.isLeap,
+	}
 }
 
 func (t LunarTime) Sub(u LunarTime) time.Duration {
@@ -78,7 +103,7 @@ func (t LunarTime) Sub(u LunarTime) time.Duration {
 }
 
 func (t LunarTime) Equal(u LunarTime) bool {
-	return t.Time.Equal(u.Time) && t.IsLeap == u.IsLeap
+	return t.time.Equal(u.time) && t.isLeap == u.isLeap
 }
 
 func (t LunarTime) Before(u LunarTime) bool {
@@ -87,4 +112,11 @@ func (t LunarTime) Before(u LunarTime) bool {
 
 func (t LunarTime) After(u LunarTime) bool {
 	return LunarToSolar(t).After(LunarToSolar(u))
+}
+
+func (t LunarTime) AsLeap(isLeap bool) LunarTime {
+	return LunarTime{
+		time:   t.time,
+		isLeap: isLeap,
+	}
 }
