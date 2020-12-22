@@ -1,7 +1,12 @@
 function main() {
+  setDefaultYear()
   document.getElementById("submit").onclick = function() {
     getLunarBirthdayForYear()
   }
+}
+
+function setDefaultYear() {
+  document.getElementById("year").value = (new Date()).getFullYear()
 }
 
 function getLunarBirthdayForYear() {
