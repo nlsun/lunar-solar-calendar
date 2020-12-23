@@ -8,11 +8,19 @@
 </head>
 
 <body>
+
+    <!--TODO: Have a toggle warning when birth date or target month is
+        outside of 1900-2100-->
+    <!--TODO: Have a toggle warning when birth date could be a leap month
+        and leap month is not checked-->
+
     <div>
+        <h2>Birthday</h2>
+
         <label>Lunar Birth Date:</label>
-        <input type="text" id="lunar-birth-date" size="10" value="11/06/1958">
+        <input type="text" id="bd-lunar-birth-date" size="10" value="11/06/1958">
         <br>
-        <input type="checkbox" id="is-leap-month">
+        <input type="checkbox" id="bd-is-leap-month">
         <label>Leap Month</label>
 
         <br>
@@ -21,16 +29,55 @@
         <input type="text" id="year" size="10">
 
         <br>
-        <input type="button" id="submit" size="10" value="Submit">
+        <input type="button" id="bd-submit" size="10" value="Submit">
 
         <br>
         <br>
         <label>Birthday:</label>
         <input type="text" id="birthday" size="10">
-        <!--TODO: Have a toggle warning when birth date or target month is
-            outside of 1900-2100-->
-        <!--TODO: Have a toggle warning when birth date could be a leap month
-            and leap month is not checked-->
+    </div>
+
+    <hr>
+    <hr>
+    <div>
+        <h2>Calendar</h2>
+
+        <label>Name of person:</label>
+        <input type="text" id="person-name" size="20">
+
+        <br>
+        <br>
+        <label>Lunar Birth Date:</label>
+        <input type="text" id="cal-lunar-birth-date" size="10" value="11/06/1958">
+        <br>
+        <input type="checkbox" id="cal-is-leap-month">
+        <label>Leap Month</label>
+
+        <br>
+        <br>
+        <label>Number of years to output:</label>
+        <input type="text" id="num-years" size="10" value="150">
+
+        <br>
+        <br>
+        <label>*** Notifications:</label>
+        <br>
+        <textarea id="notifications" rows="6" cols="40">
+[
+  {"duration": "9h", "forward": true},
+  {"duration": "15h"},
+  {"duration": "159h"},
+  {"duration": "327h"}
+]
+        </textarea>
+        <p>
+        *** As of December 2020 Google Calendar doesn't support importing
+        notifications. The recommendation there is to create a new calendar
+        and set default notifications that will apply to the imported events.
+        </p>
+
+        <br>
+        <input type="button" id="cal-download" size="10" value="Download">
     </div>
 
     <br>

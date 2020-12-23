@@ -14,7 +14,6 @@ import (
 
 // TODO: Take traditional chinese birth date, convert to birthday of this
 // Gregorian year.
-// TODO: Generate google calendar for a person, notifications configurable.
 
 type lunarBirthdayForYearRequest struct {
 	LunarBirthDate time.Time `json:"lunar_birth_date"`
@@ -26,6 +25,19 @@ type lunarBirthdayForYearResponse struct {
 	Year  int `json:"year"`
 	Month int `json:"month"`
 	Day   int `json:"day"`
+}
+
+type lunarBirthdayCalendarRequest struct {
+	LunarBirthDate time.Time      `json:"lunar_birth_date"`
+	IsLeapMonth    bool           `json:"is_leap_month"`
+	LastYear       int            `json:"last_year"`
+	Title          string         `json:"title"`
+	Description    string         `json:"description"`
+	Notifications  []notification `json:"notifications"`
+}
+
+type lunarBirthdayCalendarResponse struct {
+	Calendar string `json:"calendar"`
 }
 
 type errorResponse struct {
@@ -57,6 +69,7 @@ func mkHandler(assetDir string) *http.ServeMux {
 	sv.HandleFunc("/", handleStaticFile(assetDir+"/html/index.html"))
 	sv.HandleFunc("/assets/js/script.js", handleStaticFile(assetDir+"/js/script.js"))
 	sv.HandleFunc("/api/v1/lunar-birthday-for-year/", handlelunarBirthdayForYear)
+	sv.HandleFunc("/api/v1/lunar-birthday-calendar/", handlelunarBirthdayCalendar)
 	return sv
 }
 
@@ -107,6 +120,42 @@ func handlelunarBirthdayForYear(w http.ResponseWriter, req *http.Request) {
 		Month: int(birthday.Month()),
 		Day:   birthday.Day(),
 	}
+	b, err = json.Marshal(resp)
+	if err != nil {
+		writeHttpErr(w, http.StatusInternalServerError)
+		log.Print(err)
+		return
+	}
+
+	if _, err := w.Write(b); err != nil {
+		log.Print(err)
+	}
+}
+
+func handlelunarBirthdayCalendar(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		writeHttpErr(w, http.StatusMethodNotAllowed)
+		return
+	}
+
+	b, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		writeHttpErr(w, http.StatusInternalServerError)
+		log.Print(err)
+		return
+	}
+
+	var reqBody lunarBirthdayCalendarRequest
+	if err := json.Unmarshal(b, &reqBody); err != nil {
+		writeHttpErr(w, http.StatusInternalServerError)
+		log.Printf("%s: %s", string(b), err)
+		return
+	}
+
+	lunarBirthday := lunarsolar.NewLunarTime(reqBody.LunarBirthDate, reqBody.IsLeapMonth)
+	cal := generateLunarBirthdayCalendar(lunarBirthday, reqBody.LastYear, reqBody.Title, reqBody.Description, reqBody.Notifications)
+
+	resp := lunarBirthdayCalendarResponse{Calendar: cal.Serialize()}
 	b, err = json.Marshal(resp)
 	if err != nil {
 		writeHttpErr(w, http.StatusInternalServerError)
