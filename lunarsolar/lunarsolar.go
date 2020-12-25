@@ -1,3 +1,7 @@
+// Package lunarsolar provides Lunar and Solar date conversions.
+//
+// A good source of date conversions to verify against is
+// https://www.hko.gov.hk/en/gts/time/conversion.htm
 package lunarsolar
 
 import (
