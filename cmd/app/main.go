@@ -27,6 +27,17 @@ type lunarBirthdayForYearResponse struct {
 	Day   int `json:"day"`
 }
 
+type solarToLunarBirthdayRequest struct {
+	SolarBirthDate time.Time `json:"solar_birth_date"`
+}
+
+type solarToLunarBirthdayResponse struct {
+	Year   int  `json:"year"`
+	Month  int  `json:"month"`
+	Day    int  `json:"day"`
+	IsLeap bool `json:"is_leap"`
+}
+
 type lunarBirthdayCalendarRequest struct {
 	LunarBirthDate time.Time      `json:"lunar_birth_date"`
 	IsLeapMonth    bool           `json:"is_leap_month"`
@@ -69,6 +80,7 @@ func mkHandler(assetDir string) *http.ServeMux {
 	sv.HandleFunc("/", handleStaticFile(assetDir+"/html/index.html"))
 	sv.HandleFunc("/assets/js/script.js", handleStaticFile(assetDir+"/js/script.js"))
 	sv.HandleFunc("/api/v1/lunar-birthday-for-year/", handlelunarBirthdayForYear)
+	sv.HandleFunc("/api/v1/solar-to-lunar-birthday/", handleSolarToLunarBirthday)
 	sv.HandleFunc("/api/v1/lunar-birthday-calendar/", handlelunarBirthdayCalendar)
 	return sv
 }
@@ -119,6 +131,51 @@ func handlelunarBirthdayForYear(w http.ResponseWriter, req *http.Request) {
 		Year:  birthday.Year(),
 		Month: int(birthday.Month()),
 		Day:   birthday.Day(),
+	}
+	b, err = json.Marshal(resp)
+	if err != nil {
+		writeHttpErr(w, http.StatusInternalServerError)
+		log.Print(err)
+		return
+	}
+
+	if _, err := w.Write(b); err != nil {
+		log.Print(err)
+	}
+}
+
+func handleSolarToLunarBirthday(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		writeHttpErr(w, http.StatusMethodNotAllowed)
+		return
+	}
+
+	b, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		writeHttpErr(w, http.StatusInternalServerError)
+		log.Print(err)
+		return
+	}
+
+	var reqBody solarToLunarBirthdayRequest
+	if err := json.Unmarshal(b, &reqBody); err != nil {
+		writeHttpErr(w, http.StatusInternalServerError)
+		log.Printf("%s: %s", string(b), err)
+		return
+	}
+
+	birthday := lunarsolar.SolarToLunar(reqBody.SolarBirthDate)
+	if err != nil {
+		writeHttpErr(w, http.StatusBadRequest)
+		log.Print(err)
+		return
+	}
+
+	resp := solarToLunarBirthdayResponse{
+		Year:   birthday.Time().Year(),
+		Month:  int(birthday.Time().Month()),
+		Day:    birthday.Time().Day(),
+		IsLeap: birthday.IsLeap(),
 	}
 	b, err = json.Marshal(resp)
 	if err != nil {

@@ -15,7 +15,7 @@
         and leap month is not checked-->
 
     <div>
-        <h2>Birthday</h2>
+        <h2>Lunar Birthday</h2>
 
         <label>Lunar Birth Date:</label>
         <input type="text" id="bd-lunar-birth-date" size="10" value="11/06/1958">
@@ -34,7 +34,27 @@
         <br>
         <br>
         <label>Birthday:</label>
-        <input type="text" id="birthday" size="10">
+        <input type="text" id="bd-birthday" size="10">
+    </div>
+
+    <hr>
+    <hr>
+    <div>
+        <h2>Convert Gregorian to Lunar birth date</h2>
+
+        <label>Gregorian Birth Date:</label>
+        <input type="text" id="greg-birth-date" size="10" value="1/1/1990">
+
+        <br>
+        <input type="button" id="greg-submit" size="10" value="Submit">
+
+        <br>
+        <br>
+        <label>Birthday:</label>
+        <input type="text" id="greg-birthday" size="10">
+        <br>
+        <input type="checkbox" id="greg-is-leap-month">
+        <label>Leap Month</label>
     </div>
 
     <hr>

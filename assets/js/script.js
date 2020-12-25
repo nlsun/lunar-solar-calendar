@@ -3,6 +3,9 @@ function main() {
   document.getElementById("bd-submit").onclick = function() {
     getLunarBirthdayForYear()
   }
+  document.getElementById("greg-submit").onclick = function() {
+    getLunarBirthdayFromGregorian()
+  }
   document.getElementById("cal-download").onclick = function() {
     getLunarBirthdayCalendar()
   }
@@ -17,7 +20,7 @@ function getLunarBirthdayForYear() {
   const isLeapMonth = document.getElementById("bd-is-leap-month").checked
   const year = parseInt(document.getElementById("year").value)
 
-  clearBirthdayField()
+  document.getElementById("bd-birthday").value = ""
 
   req = new XMLHttpRequest();
   req.onreadystatechange = function() {
@@ -25,7 +28,7 @@ function getLunarBirthdayForYear() {
       if (req.status === 200) {
         const resp = JSON.parse(req.responseText)
         const date = new Date(resp.year, resp.month-1, resp.day)
-        setBirthdayField(date.toLocaleDateString())
+        document.getElementById("bd-birthday").value = date.toLocaleDateString()
       }
     }
   }
@@ -35,6 +38,32 @@ function getLunarBirthdayForYear() {
     year: year,
   }
   req.open('POST', 'api/v1/lunar-birthday-for-year/')
+  req.send(JSON.stringify(reqBody))
+}
+
+function getLunarBirthdayFromGregorian() {
+  const gregBirthDate = new Date(document.getElementById("greg-birth-date").value)
+
+  document.getElementById("greg-birthday").value = ""
+  document.getElementById("greg-is-leap-month").checked = false
+
+  req = new XMLHttpRequest();
+  req.onreadystatechange = function() {
+    if (req.readyState === XMLHttpRequest.DONE) {
+      if (req.status === 200) {
+        const resp = JSON.parse(req.responseText)
+        const date = new Date(resp.year, resp.month-1, resp.day)
+        document.getElementById("greg-birthday").value = date.toLocaleDateString()
+        if (resp.is_leap) {
+          document.getElementById("greg-is-leap-month").checked = true
+        }
+      }
+    }
+  }
+  reqBody = {
+    solar_birth_date: gregBirthDate.toISOString(),
+  }
+  req.open('POST', 'api/v1/solar-to-lunar-birthday/')
   req.send(JSON.stringify(reqBody))
 }
 
@@ -79,14 +108,6 @@ function offerDownload(filename, text) {
   element.click();
 
   document.body.removeChild(element);
-}
-
-function setBirthdayField(birthday) {
-  document.getElementById("birthday").value = birthday
-}
-
-function clearBirthdayField() {
-  document.getElementById("birthday").value = ""
 }
 
 main()
